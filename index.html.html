@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HSE Manager — Personal Operating System</title>
+<style>
+  :root {
+    --navy: #1e2a5e;
+    --navy-light: #2d3d8a;
+    --orange: #e8541a;
+    --orange-light: #f07d45;
+    --grey-dark: #333;
+    --grey-mid: #666;
+    --grey-light: #f5f5f5;
+    --white: #ffffff;
+    --green: #2e7d32;
+    --amber: #f57c00;
+    --red: #c62828;
+    --green-bg: #e8f5e9;
+    --amber-bg: #fff8e1;
+    --red-bg: #ffebee;
+    --border: #ddd;
+    --radius: 8px;
+    --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html {
+    height: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #eef0f6;
+    color: var(--grey-dark);
+    height: 100%;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--navy);
+    color: white;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo-bar {
+    width: 4px; height: 36px;
+    background: var(--orange);
+    border-radius: 2px;
+  }
+  header h1 { font-size: 18px; font-weight: 600; letter-spacing: 0.3px; }
+  header .subtitle { font-size: 12px; opacity: 0.65; margin-top: 2px; }
+  .header-date { font-size: 13px; opacity: 0.7; }
+
+  /* ── Nav Tabs ── */
+  nav {
+    background: var(--navy-light);
+    padding: 0 32px;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+  }
+  nav button {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.65);
+    padding: 14px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  nav button:hover { color: white; background: rgba(255,255,255,0.08); }
+  nav button.active { color: white; border-bottom-color: var(--orange); }
+
+  /* ── Main ── */
+  main { padding: 28px 32px; max-width: 1300px; }
+
+  #scroll-wrap {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── Cards ── */
+  .card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--grey-light);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card h2 .icon { font-size: 17px; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+  /* ── RAG Status ── */
+  .rag-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--grey-light);
+    gap: 12px;
+  }
+  .rag-row:last-child { border-bottom: none; }
+  .rag-label { font-size: 14px; font-weight: 500; flex: 1; }
+  .rag-notes { font-size: 12px; color: var(--grey-mid); flex: 2; }
+  .rag-notes input, .rag-notes textarea {
+    width: 100%; border: 1px solid var(--border);
+    border-radius: 4px; padding: 5px 8px; font-size: 12px;
+    font-family: inherit; resize: vertical;
+    background: var(--grey-light);
+    transition: border-color 0.2s;
+  }
+  .rag-notes input:focus, .rag-notes textarea:focus {
+    outline: none; border-color: var(--navy-light);
+    background: white;
+  }
+  .rag-select {
+    border: none; border-radius: 20px;
+    padding: 4px 12px; font-size: 12px; font-weight: 600;
+    cursor: pointer; appearance: none;
+    text-align: center; min-width: 80px;
+  }
+  .rag-select.green { background: var(--green-bg); color: var(--green); }
+  .rag-select.amber { background: var(--amber-bg); color: var(--amber); }
+  .rag-select.red   { background: var(--red-bg); color: var(--red); }
+  .rag-select.grey  { background: #f0f0f0; color: #888; }
+
+  /* ── Checklists ── */
+  .checklist-group { margin-bottom: 20px; }
+  .checklist-group h3 {
+    font-size: 13px; font-weight: 600; color: var(--navy);
+    margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .checklist-item {
+    display: flex; align-items: flex-start;
+    gap: 10px; padding: 8px 0;
+    border-bottom: 1px solid var(--grey-light);
+  }
+  .checklist-item:last-child { border-bottom: none; }
+  .checklist-item input[type="checkbox"] {
+    width: 16px; height: 16px; cursor: pointer;
+    accent-color: var(--orange);
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .checklist-item label {
+    font-size: 13px; cursor: pointer; line-height: 1.4;
+    transition: color 0.2s;
+  }
+  .checklist-item input:checked + label {
+    color: #aaa; text-decoration: line-through;
+  }
+  .reset-btn {
+    background: none; border: 1px solid var(--border);
+    border-radius: 4px; padding: 5px 12px;
+    font-size: 12px; color: var(--grey-mid); cursor: pointer;
+    margin-top: 10px; transition: all 0.2s;
+  }
+  .reset-btn:hover { border-color: var(--orange); color: var(--orange); }
+
+  /* ── KPI Metrics ── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+  .kpi-card {
+    background: var(--grey-light); border-radius: var(--radius);
+    padding: 16px; border-left: 4px solid var(--navy);
+  }
+  .kpi-card.orange { border-left-color: var(--orange); }
+  .kpi-card.green  { border-left-color: var(--green); }
+  .kpi-card label { font-size: 11px; font-weight: 600; color: var(--grey-mid); text-transform: uppercase; letter-spacing: 0.4px; display: block; margin-bottom: 8px; }
+  .kpi-card input[type="number"], .kpi-card input[type="text"] {
+    width: 100%; border: 1px solid var(--border); border-radius: 4px;
+    padding: 8px 10px; font-size: 22px; font-weight: 700;
+    color: var(--navy); background: white; font-family: inherit;
+  }
+  .kpi-card input:focus { outline: none; border-color: var(--navy-light); }
+  .kpi-card .kpi-target { font-size: 11px; color: var(--grey-mid); margin-top: 6px; }
+  .kpi-card .kpi-target input {
+    font-size: 11px; font-weight: 400; padding: 2px 6px;
+    border: 1px solid var(--border); border-radius: 3px;
+    width: 60px; color: var(--grey-mid);
+  }
+
+  /* ── Action Tracker ── */
+  .action-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .action-table th {
+    background: var(--navy); color: white;
+    padding: 10px 12px; text-align: left; font-size: 12px;
+    font-weight: 600; letter-spacing: 0.3px;
+  }
+  .action-table th:first-child { border-radius: 6px 0 0 0; }
+  .action-table th:last-child { border-radius: 0 6px 0 0; }
+  .action-table td { padding: 8px 12px; border-bottom: 1px solid var(--grey-light); vertical-align: middle; }
+  .action-table tr:hover td { background: #fafafa; }
+  .action-table td input, .action-table td select, .action-table td textarea {
+    width: 100%; border: 1px solid transparent; border-radius: 3px;
+    padding: 4px 6px; font-size: 13px; font-family: inherit;
+    background: transparent; transition: all 0.2s; resize: none;
+  }
+  .action-table td input:focus, .action-table td select:focus, .action-table td textarea:focus {
+    outline: none; border-color: var(--navy-light);
+    background: white; box-shadow: 0 0 0 2px rgba(45,61,138,0.1);
+  }
+  .status-badge {
+    display: inline-block; border-radius: 12px;
+    padding: 3px 10px; font-size: 11px; font-weight: 600; white-space: nowrap;
+  }
+  .status-open   { background: var(--amber-bg); color: var(--amber); }
+  .status-closed { background: var(--green-bg); color: var(--green); }
+  .status-overdue { background: var(--red-bg); color: var(--red); }
+  .add-row-btn {
+    background: var(--orange); color: white; border: none;
+    border-radius: 6px; padding: 8px 16px; font-size: 13px;
+    font-weight: 600; cursor: pointer; margin-top: 12px;
+    transition: background 0.2s;
+  }
+  .add-row-btn:hover { background: var(--orange-light); }
+  .del-btn {
+    background: none; border: none; color: #ccc;
+    cursor: pointer; font-size: 16px; padding: 2px 6px;
+    transition: color 0.2s;
+  }
+  .del-btn:hover { color: var(--red); }
+
+  /* ── Stakeholders ── */
+  .stakeholder-row {
+    display: grid;
+    grid-template-columns: 180px 1fr 1fr 110px;
+    gap: 12px; align-items: start;
+    padding: 12px 0; border-bottom: 1px solid var(--grey-light);
+  }
+  .stakeholder-row:last-child { border-bottom: none; }
+  .stakeholder-name { font-size: 13px; font-weight: 600; color: var(--navy); padding-top: 6px; }
+  .stakeholder-row textarea {
+    width: 100%; border: 1px solid var(--border); border-radius: 4px;
+    padding: 6px 8px; font-size: 12px; font-family: inherit;
+    resize: vertical; min-height: 50px; background: var(--grey-light);
+  }
+  .stakeholder-row textarea:focus { outline: none; border-color: var(--navy-light); background: white; }
+  .col-label { font-size: 11px; font-weight: 600; color: var(--grey-mid); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+
+  /* ── Development ── */
+  .dev-item {
+    display: grid;
+    grid-template-columns: 200px 1fr 150px 120px;
+    gap: 12px; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--grey-light);
+  }
+  .dev-item:last-child { border-bottom: none; }
+  .dev-title { font-size: 13px; font-weight: 600; }
+  .dev-item input, .dev-item select, .dev-item textarea {
+    width: 100%; border: 1px solid var(--border); border-radius: 4px;
+    padding: 6px 8px; font-size: 12px; font-family: inherit;
+    background: var(--grey-light);
+  }
+  .dev-item input:focus, .dev-item select:focus {
+    outline: none; border-color: var(--navy-light); background: white;
+  }
+  .progress-bar-wrap {
+    background: #e0e0e0; border-radius: 10px; height: 8px; overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; background: var(--orange); border-radius: 10px;
+    transition: width 0.4s;
+  }
+
+  /* ── Summary pillars ── */
+  .pillars-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px; margin-bottom: 24px;
+  }
+  .pillar-card {
+    background: white; border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 18px 16px;
+    border-top: 4px solid var(--navy);
+    transition: transform 0.2s;
+    cursor: default;
+  }
+  .pillar-card:hover { transform: translateY(-2px); }
+  .pillar-card.orange-top { border-top-color: var(--orange); }
+  .pillar-num { font-size: 11px; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .pillar-name { font-size: 13px; font-weight: 600; color: var(--navy); line-height: 1.3; margin-bottom: 12px; }
+  .pillar-status {
+    display: inline-block; border-radius: 12px;
+    padding: 4px 10px; font-size: 11px; font-weight: 700;
+  }
+
+  /* ── Notes area ── */
+  .notes-area {
+    width: 100%; min-height: 120px; border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px; font-size: 13px;
+    font-family: inherit; resize: vertical; background: var(--grey-light);
+  }
+  .notes-area:focus { outline: none; border-color: var(--navy-light); background: white; }
+
+  /* ── Save indicator ── */
+  .save-indicator {
+    position: fixed; bottom: 20px; right: 20px;
+    background: var(--green); color: white;
+    padding: 8px 18px; border-radius: 20px;
+    font-size: 12px; font-weight: 600;
+    opacity: 0; transition: opacity 0.4s;
+    pointer-events: none; z-index: 1000;
+  }
+  .save-indicator.show { opacity: 1; }
+
+  /* ── Rhythm tabs ── */
+  .rhythm-tabs { display: flex; gap: 4px; margin-bottom: 20px; flex-wrap: wrap; }
+  .rhythm-tab {
+    background: var(--grey-light); border: 1px solid var(--border);
+    border-radius: 20px; padding: 7px 18px; font-size: 13px;
+    font-weight: 500; cursor: pointer; transition: all 0.2s;
+  }
+  .rhythm-tab.active { background: var(--navy); color: white; border-color: var(--navy); }
+  .rhythm-panel { display: none; }
+  .rhythm-panel.active { display: block; }
+
+  .field-input {
+    width: 100%; border: 1px solid var(--border); border-radius: 4px;
+    padding: 7px 10px; font-size: 13px; font-family: inherit;
+    background: var(--grey-light); transition: all 0.2s;
+  }
+  .field-input:focus { outline: none; border-color: var(--navy-light); background: white; }
+
+  @media (max-width: 900px) {
+    main { padding: 16px; }
+    .pillars-grid { grid-template-columns: 1fr 1fr; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .stakeholder-row { grid-template-columns: 1fr 1fr; }
+    .dev-item { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div id="scroll-wrap">
+
+<header>
+  <div class="header-left">
+    <div class="logo-bar"></div>
+    <div>
+      <h1>Personal Operating System</h1>
+      <div class="subtitle">HSE Manager — Morgan Sindall Property Services</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div class="header-date" id="headerDate" style="margin-right:12px;"></div>
+    <button onclick="exportData()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;" title="Export all data to a JSON file for backup or transferring to another device">⬆ Export</button>
+    <label style="background:var(--orange);border:none;color:white;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;" title="Import data from a previously exported JSON file">⬇ Import<input type="file" accept=".json" onchange="importData(event)" style="display:none;"></label>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="showTab('overview')">Overview</button>
+  <button onclick="showTab('compliance')">Compliance &amp; Assurance</button>
+  <button onclick="showTab('culture')">Culture &amp; Behaviour</button>
+  <button onclick="showTab('operational')">Operational Support</button>
+  <button onclick="showTab('rhythms')">Operating Rhythms</button>
+  <button onclick="showTab('actions')">Action Tracker</button>
+  <button onclick="showTab('stakeholders')">Stakeholders</button>
+  <button onclick="showTab('development')">Development</button>
+  <button onclick="showTab('habits')">Personal Habits</button>
+  <button onclick="showTab('journal')">Journal</button>
+  <button onclick="showTab('people')">My People</button>
+</nav>
+
+<main>
+
+<!-- ═══════════════════════════════ OVERVIEW ═══════════════════════════════ -->
+<div id="tab-overview" class="tab-panel active">
+
+  <div class="pillars-grid" id="pillarsOverview">
+    <!-- populated by JS -->
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h2><span class="icon">🎯</span> Role True North</h2>
+      <textarea class="notes-area" id="trueNorth" placeholder="Your personal statement of purpose for this role...">To protect people and improve performance by building a culture where doing the right thing is the easiest thing.</textarea>
+    </div>
+    <div class="card">
+      <h2><span class="icon">📌</span> Current Priorities (Top 5)</h2>
+      <div id="priorities">
+        <!-- populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="icon">📝</span> Weekly Notes</h2>
+    <textarea class="notes-area" id="weeklyNotes" style="min-height:100px;" placeholder="Key observations, wins, issues this week..."></textarea>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════ COMPLIANCE ═══════════════════════════════ -->
+<div id="tab-compliance" class="tab-panel">
+  <div class="card">
+    <h2><span class="icon">📋</span> Compliance &amp; Assurance Status</h2>
+    <div class="rag-row" style="font-size:11px;font-weight:700;color:var(--grey-mid);text-transform:uppercase;padding-bottom:6px;">
+      <span class="rag-label">Area</span>
+      <span class="rag-notes">Notes / Last Action</span>
+      <span style="min-width:80px;text-align:center;">Status</span>
+    </div>
+    <div id="complianceRows"></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h2><span class="icon">🗓️</span> Audit Programme</h2>
+      <textarea class="notes-area" id="auditProgramme" placeholder="Audit schedule, upcoming dates, coverage gaps..."></textarea>
+    </div>
+    <div class="card">
+      <h2><span class="icon">📄</span> ISO / iMS Status</h2>
+      <textarea class="notes-area" id="imsStatus" placeholder="ISO 45001, ISO 14001 status, next surveillance dates, gaps..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ CULTURE ═══════════════════════════════ -->
+<div id="tab-culture" class="tab-panel">
+  <div class="card">
+    <h2><span class="icon">🧠</span> Culture &amp; Behaviour Status</h2>
+    <div class="rag-row" style="font-size:11px;font-weight:700;color:var(--grey-mid);text-transform:uppercase;padding-bottom:6px;">
+      <span class="rag-label">Area</span>
+      <span class="rag-notes">Notes / Last Action</span>
+      <span style="min-width:80px;text-align:center;">Status</span>
+    </div>
+    <div id="cultureRows"></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h2><span class="icon">💬</span> Coaching Log</h2>
+      <textarea class="notes-area" id="coachingLog" placeholder="Who have you coached recently? What was discussed? Any follow-up needed?"></textarea>
+    </div>
+    <div class="card">
+      <h2><span class="icon">🔍</span> Behaviour Observations</h2>
+      <textarea class="notes-area" id="behaviourObs" placeholder="Positive and negative behavioural trends observed on sites..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ OPERATIONAL ═══════════════════════════════ -->
+<div id="tab-operational" class="tab-panel">
+  <div class="card">
+    <h2><span class="icon">🔧</span> Operational Support Status</h2>
+    <div class="rag-row" style="font-size:11px;font-weight:700;color:var(--grey-mid);text-transform:uppercase;padding-bottom:6px;">
+      <span class="rag-label">Area</span>
+      <span class="rag-notes">Notes / Last Action</span>
+      <span style="min-width:80px;text-align:center;">Status</span>
+    </div>
+    <div id="operationalRows"></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h2><span class="icon">📊</span> KPI Metrics</h2>
+      <div class="kpi-grid" id="kpiGrid"></div>
+    </div>
+    <div class="card">
+      <h2><span class="icon">🚨</span> Recent Incidents / Near Misses</h2>
+      <textarea class="notes-area" id="incidentLog" placeholder="Log recent incidents, investigations underway, findings..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ RHYTHMS ═══════════════════════════════ -->
+<div id="tab-rhythms" class="tab-panel">
+  <div class="card">
+    <h2><span class="icon">🔄</span> Operating Rhythms</h2>
+    <div class="rhythm-tabs">
+      <button class="rhythm-tab active" onclick="showRhythm('daily')">Daily</button>
+      <button class="rhythm-tab" onclick="showRhythm('weekly')">Weekly</button>
+      <button class="rhythm-tab" onclick="showRhythm('monthly')">Monthly</button>
+      <button class="rhythm-tab" onclick="showRhythm('quarterly')">Quarterly</button>
+      <button class="rhythm-tab" onclick="showRhythm('annual')">Annual</button>
+    </div>
+
+    <div id="rhythm-daily" class="rhythm-panel active" data-label="Daily"></div>
+    <div id="rhythm-weekly" class="rhythm-panel" data-label="Weekly"></div>
+    <div id="rhythm-monthly" class="rhythm-panel" data-label="Monthly"></div>
+    <div id="rhythm-quarterly" class="rhythm-panel" data-label="Quarterly"></div>
+    <div id="rhythm-annual" class="rhythm-panel" data-label="Annual"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ ACTIONS ═══════════════════════════════ -->
+<div id="tab-actions" class="tab-panel">
+  <div class="card">
+    <h2><span class="icon">✅</span> Action Tracker</h2>
+    <table class="action-table" id="actionTable">
+      <thead>
+        <tr>
+          <th style="width:40px;">#</th>
+          <th style="width:90px;">Date Raised</th>
+          <th>Action / Finding</th>
+          <th style="width:130px;">Source</th>
+          <th style="width:130px;">Owner</th>
+          <th style="width:100px;">Due Date</th>
+          <th style="width:100px;">Status</th>
+          <th style="width:40px;"></th>
+        </tr>
+      </thead>
+      <tbody id="actionBody"></tbody>
+    </table>
+    <button class="add-row-btn" onclick="addActionRow()">+ Add Action</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ STAKEHOLDERS ═══════════════════════════════ -->
+<div id="tab-stakeholders" class="tab-panel">
+  <div class="card">
+    <h2><span class="icon">🤝</span> Stakeholder Engagement</h2>
+    <div style="display:grid;grid-template-columns:180px 1fr 1fr 110px;gap:12px;padding-bottom:8px;border-bottom:2px solid var(--grey-light);">
+      <div class="col-label">Stakeholder</div>
+      <div class="col-label">Notes / Last Contact</div>
+      <div class="col-label">Next Actions</div>
+      <div class="col-label">Relationship</div>
+    </div>
+    <div id="stakeholderRows"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ DEVELOPMENT ═══════════════════════════════ -->
+<div id="tab-development" class="tab-panel">
+  <div class="card">
+    <h2><span class="icon">🎓</span> Professional Development Spine</h2>
+    <div style="display:grid;grid-template-columns:200px 1fr 150px 120px;gap:12px;padding-bottom:8px;border-bottom:2px solid var(--grey-light);">
+      <div class="col-label">Area</div>
+      <div class="col-label">Notes / Progress</div>
+      <div class="col-label">Target Date</div>
+      <div class="col-label">% Complete</div>
+    </div>
+    <div id="devRows"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="icon">📚</span> CPD Log</h2>
+    <table class="action-table" id="cpdTable">
+      <thead>
+        <tr>
+          <th style="width:40px;">#</th>
+          <th style="width:110px;">Date</th>
+          <th>Activity</th>
+          <th style="width:140px;">Type</th>
+          <th style="width:70px;">Hours</th>
+          <th>Key Learning / Reflection</th>
+          <th style="width:40px;"></th>
+        </tr>
+      </thead>
+      <tbody id="cpdBody"></tbody>
+    </table>
+    <div style="display:flex;align-items:center;gap:16px;margin-top:12px;">
+      <button class="add-row-btn" onclick="addCpdRow()">+ Add CPD Entry</button>
+      <span id="cpdHoursTotal" style="font-size:13px;color:var(--grey-mid);"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ HABITS ═══════════════════════════════ -->
+<div id="tab-habits" class="tab-panel">
+  <div class="card">
+    <h2><span class="icon">💪</span> Personal Habits</h2>
+    <p style="font-size:13px;color:var(--grey-mid);margin-bottom:16px;">Define the habits that will underpin your performance in this role. Tick them off daily. Reset each morning.</p>
+    <div id="habitsContainer"></div>
+    <div style="display:flex;gap:10px;margin-top:16px;align-items:center;">
+      <input type="text" id="newHabitInput" placeholder="Add a new habit..." style="flex:1;border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:13px;font-family:inherit;background:var(--grey-light);" onkeydown="if(event.key==='Enter')addHabit()">
+      <button class="add-row-btn" onclick="addHabit()">+ Add Habit</button>
+      <button class="reset-btn" onclick="resetHabits()">Reset all for today</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2><span class="icon">📓</span> Habits Reflection</h2>
+    <textarea class="notes-area" id="habitsReflection" placeholder="Weekly reflection — which habits are sticking? Where are you slipping? What's getting in the way?"></textarea>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ JOURNAL ═══════════════════════════════ -->
+<div id="tab-journal" class="tab-panel">
+  <div class="card">
+    <h2><span class="icon">📖</span> Journal</h2>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+      <input type="date" id="journalDatePicker" style="border:1px solid var(--border);border-radius:6px;padding:7px 12px;font-size:13px;font-family:inherit;background:var(--grey-light);">
+      <button class="add-row-btn" onclick="addJournalEntry()" style="background:var(--navy);">+ New Entry</button>
+      <button class="reset-btn" onclick="deleteJournalEntry()">Delete this entry</button>
+      <span id="journalEntryCount" style="font-size:12px;color:var(--grey-mid);margin-left:auto;"></span>
+    </div>
+    <div id="journalEntryArea" style="display:none;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div>
+          <div class="col-label" style="margin-bottom:6px;">What went well today?</div>
+          <textarea class="notes-area" id="j_well" style="min-height:90px;" placeholder="Wins, positive observations, progress..."></textarea>
+        </div>
+        <div>
+          <div class="col-label" style="margin-bottom:6px;">What was challenging?</div>
+          <textarea class="notes-area" id="j_challenge" style="min-height:90px;" placeholder="Obstacles, friction, things that didn't land..."></textarea>
+        </div>
+        <div>
+          <div class="col-label" style="margin-bottom:6px;">What will I do differently?</div>
+          <textarea class="notes-area" id="j_different" style="min-height:90px;" placeholder="Adjustments, experiments, commitments..."></textarea>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div>
+          <div class="col-label" style="margin-bottom:6px;">Safety / culture observations</div>
+          <textarea class="notes-area" id="j_safety" style="min-height:90px;" placeholder="Behaviours noticed, conversations had, culture moments..."></textarea>
+        </div>
+        <div>
+          <div class="col-label" style="margin-bottom:6px;">Relationships &amp; stakeholders</div>
+          <textarea class="notes-area" id="j_relationships" style="min-height:90px;" placeholder="Key interactions, follow-ups needed, rapport built..."></textarea>
+        </div>
+      </div>
+      <div>
+        <div class="col-label" style="margin-bottom:6px;">Free notes</div>
+        <textarea class="notes-area" id="j_free" style="min-height:100px;" placeholder="Anything else — thoughts, ideas, things to remember..."></textarea>
+      </div>
+    </div>
+    <div id="journalEmptyState" style="text-align:center;padding:40px;color:var(--grey-mid);font-size:14px;">
+      Select a date and click <strong>+ New Entry</strong> to start journalling, or pick a previous date to review an entry.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="icon">📅</span> Previous Entries</h2>
+    <div id="journalIndex" style="font-size:13px;"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ MY PEOPLE ═══════════════════════════════ -->
+<div id="tab-people" class="tab-panel">
+
+  <!-- Person selector -->
+  <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+    <button id="personBtn0" class="add-row-btn" onclick="selectPerson(0)" style="background:var(--navy);">Person 1</button>
+    <button id="personBtn1" class="add-row-btn" onclick="selectPerson(1)" style="background:#aaa;">Person 2</button>
+  </div>
+
+  <!-- Person 0 panel -->
+  <div id="personPanel0">
+    <!-- Profile -->
+    <div class="card">
+      <h2><span class="icon">👤</span> <span id="p0_heading">Direct Report 1</span></h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;">
+        <div><div class="col-label" style="margin-bottom:4px;">Name</div><input type="text" id="p0_name" placeholder="Full name" oninput="savePerson(0,'name',this.value);updatePersonHeadings()" class="field-input"></div>
+        <div><div class="col-label" style="margin-bottom:4px;">Job Title</div><input type="text" id="p0_title" placeholder="Job title" oninput="savePerson(0,'title',this.value)" class="field-input"></div>
+        <div><div class="col-label" style="margin-bottom:4px;">Start Date</div><input type="date" id="p0_start" oninput="savePerson(0,'start',this.value)" class="field-input"></div>
+        <div><div class="col-label" style="margin-bottom:4px;">Qualifications</div><input type="text" id="p0_quals" placeholder="e.g. NEBOSH, IOSH" oninput="savePerson(0,'quals',this.value)" class="field-input"></div>
+      </div>
+      <div style="margin-top:12px;">
+        <div class="col-label" style="margin-bottom:4px;">Strengths</div>
+        <textarea class="notes-area" id="p0_strengths" style="min-height:60px;" placeholder="Key strengths, what they do well..." oninput="savePerson(0,'strengths',this.value)"></textarea>
+      </div>
+      <div style="margin-top:12px;">
+        <div class="col-label" style="margin-bottom:4px;">Development Areas</div>
+        <textarea class="notes-area" id="p0_devAreas" style="min-height:60px;" placeholder="Areas to grow, gaps to close..." oninput="savePerson(0,'devAreas',this.value)"></textarea>
+      </div>
+    </div>
+
+    <!-- Objectives -->
+    <div class="card">
+      <h2><span class="icon">🎯</span> Objectives &amp; Goals</h2>
+      <table class="action-table" id="obj0Table">
+        <thead><tr>
+          <th style="width:40px;">#</th>
+          <th>Objective</th>
+          <th style="width:120px;">Due</th>
+          <th style="width:100px;">Progress %</th>
+          <th style="width:110px;">Status</th>
+          <th style="width:40px;"></th>
+        </tr></thead>
+        <tbody id="obj0Body"></tbody>
+      </table>
+      <button class="add-row-btn" onclick="addObjRow(0)" style="margin-top:12px;">+ Add Objective</button>
+    </div>
+
+    <!-- 1:1 Log -->
+    <div class="card">
+      <h2><span class="icon">🗣️</span> 1:1 Meeting Log</h2>
+      <table class="action-table" id="oneone0Table">
+        <thead><tr>
+          <th style="width:40px;">#</th>
+          <th style="width:110px;">Date</th>
+          <th>Discussion Points</th>
+          <th>Actions Agreed</th>
+          <th style="width:110px;">Next Meeting</th>
+          <th style="width:40px;"></th>
+        </tr></thead>
+        <tbody id="oneone0Body"></tbody>
+      </table>
+      <button class="add-row-btn" onclick="addOneoneMeeting(0)" style="margin-top:12px;">+ Log Meeting</button>
+    </div>
+
+    <!-- Coaching -->
+    <div class="grid-2">
+      <div class="card">
+        <h2><span class="icon">💬</span> Coaching Notes</h2>
+        <p style="font-size:12px;color:var(--grey-mid);margin-bottom:10px;">Use the COM-B / ABC lens. What capability, opportunity, or motivation issues are in play?</p>
+        <textarea class="notes-area" id="p0_coaching" style="min-height:140px;" placeholder="Coaching conversations, observations, hypotheses about behaviour drivers..." oninput="savePerson(0,'coaching',this.value)"></textarea>
+      </div>
+      <div class="card">
+        <h2><span class="icon">📈</span> Appraisal Notes</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <div><div class="col-label" style="margin-bottom:4px;">Last Appraisal</div><input type="date" id="p0_lastAppraisal" class="field-input" oninput="savePerson(0,'lastAppraisal',this.value)"></div>
+          <div><div class="col-label" style="margin-bottom:4px;">Next Appraisal</div><input type="date" id="p0_nextAppraisal" class="field-input" oninput="savePerson(0,'nextAppraisal',this.value)"></div>
+        </div>
+        <div><div class="col-label" style="margin-bottom:4px;">Overall rating / narrative</div>
+        <textarea class="notes-area" id="p0_appraisal" style="min-height:90px;" placeholder="Performance summary, rating, agreed narrative..." oninput="savePerson(0,'appraisal',this.value)"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Person 1 panel (identical structure) -->
+  <div id="personPanel1" style="display:none;">
+    <div class="card">
+      <h2><span class="icon">👤</span> <span id="p1_heading">Direct Report 2</span></h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;">
+        <div><div class="col-label" style="margin-bottom:4px;">Name</div><input type="text" id="p1_name" placeholder="Full name" oninput="savePerson(1,'name',this.value);updatePersonHeadings()" class="field-input"></div>
+        <div><div class="col-label" style="margin-bottom:4px;">Job Title</div><input type="text" id="p1_title" placeholder="Job title" oninput="savePerson(1,'title',this.value)" class="field-input"></div>
+        <div><div class="col-label" style="margin-bottom:4px;">Start Date</div><input type="date" id="p1_start" oninput="savePerson(1,'start',this.value)" class="field-input"></div>
+        <div><div class="col-label" style="margin-bottom:4px;">Qualifications</div><input type="text" id="p1_quals" placeholder="e.g. NEBOSH, IOSH" oninput="savePerson(1,'quals',this.value)" class="field-input"></div>
+      </div>
+      <div style="margin-top:12px;">
+        <div class="col-label" style="margin-bottom:4px;">Strengths</div>
+        <textarea class="notes-area" id="p1_strengths" style="min-height:60px;" placeholder="Key strengths, what they do well..." oninput="savePerson(1,'strengths',this.value)"></textarea>
+      </div>
+      <div style="margin-top:12px;">
+        <div class="col-label" style="margin-bottom:4px;">Development Areas</div>
+        <textarea class="notes-area" id="p1_devAreas" style="min-height:60px;" placeholder="Areas to grow, gaps to close..." oninput="savePerson(1,'devAreas',this.value)"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="icon">🎯</span> Objectives &amp; Goals</h2>
+      <table class="action-table" id="obj1Table">
+        <thead><tr>
+          <th style="width:40px;">#</th>
+          <th>Objective</th>
+          <th style="width:120px;">Due</th>
+          <th style="width:100px;">Progress %</th>
+          <th style="width:110px;">Status</th>
+          <th style="width:40px;"></th>
+        </tr></thead>
+        <tbody id="obj1Body"></tbody>
+      </table>
+      <button class="add-row-btn" onclick="addObjRow(1)" style="margin-top:12px;">+ Add Objective</button>
+    </div>
+
+    <div class="card">
+      <h2><span class="icon">🗣️</span> 1:1 Meeting Log</h2>
+      <table class="action-table" id="oneone1Table">
+        <thead><tr>
+          <th style="width:40px;">#</th>
+          <th style="width:110px;">Date</th>
+          <th>Discussion Points</th>
+          <th>Actions Agreed</th>
+          <th style="width:110px;">Next Meeting</th>
+          <th style="width:40px;"></th>
+        </tr></thead>
+        <tbody id="oneone1Body"></tbody>
+      </table>
+      <button class="add-row-btn" onclick="addOneoneMeeting(1)" style="margin-top:12px;">+ Log Meeting</button>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h2><span class="icon">💬</span> Coaching Notes</h2>
+        <p style="font-size:12px;color:var(--grey-mid);margin-bottom:10px;">Use the COM-B / ABC lens. What capability, opportunity, or motivation issues are in play?</p>
+        <textarea class="notes-area" id="p1_coaching" style="min-height:140px;" placeholder="Coaching conversations, observations, hypotheses about behaviour drivers..." oninput="savePerson(1,'coaching',this.value)"></textarea>
+      </div>
+      <div class="card">
+        <h2><span class="icon">📈</span> Appraisal Notes</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <div><div class="col-label" style="margin-bottom:4px;">Last Appraisal</div><input type="date" id="p1_lastAppraisal" class="field-input" oninput="savePerson(1,'lastAppraisal',this.value)"></div>
+          <div><div class="col-label" style="margin-bottom:4px;">Next Appraisal</div><input type="date" id="p1_nextAppraisal" class="field-input" oninput="savePerson(1,'nextAppraisal',this.value)"></div>
+        </div>
+        <div><div class="col-label" style="margin-bottom:4px;">Overall rating / narrative</div>
+        <textarea class="notes-area" id="p1_appraisal" style="min-height:90px;" placeholder="Performance summary, rating, agreed narrative..." oninput="savePerson(1,'appraisal',this.value)"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</main>
+
+<div class="save-indicator" id="saveIndicator">Saved ✓</div>
+
+</div><!-- #scroll-wrap -->
+
+<script>
+// ── Data definitions ────────────────────────────────────────────────────────
+
+const PILLARS = [
+  { id: 'compliance', num: '01', name: 'Compliance & Assurance', tab: 'compliance' },
+  { id: 'culture',    num: '02', name: 'Culture & Behaviour',    tab: 'culture' },
+  { id: 'operational',num: '03', name: 'Operational Support',    tab: 'operational' },
+  { id: 'stakeholders',num:'04', name: 'Stakeholder Relationships', tab: 'stakeholders' },
+  { id: 'strategic',  num: '05', name: 'Strategic & Development', tab: 'development' },
+];
+
+const COMPLIANCE_ITEMS = [
+  'ISO 45001 registration maintenance',
+  'ISO 14001 / Environmental compliance',
+  'iMS / Business Management System adherence',
+  'Audit programme delivery (project & office)',
+  'Corrective action close-out rate',
+  'Contractor documentation vetting',
+  'RAMS review and non-conformance clearance',
+  'Electrical / legislative compliance checks',
+  'Monthly audit / inspection report',
+  'Annual HSE report',
+];
+
+const CULTURE_ITEMS = [
+  'Safety culture across operational teams',
+  'Subcontractor engagement quality',
+  'Near-miss reporting frequency (leading indicator)',
+  'Mentoring and coaching activity',
+  'Training plan completion rate',
+  'Leadership engagement with HSE',
+  'Positive safety observations (vs. enforcement)',
+];
+
+const OPERATIONAL_ITEMS = [
+  'Regional HSE plan delivery',
+  'Accident / incident investigation quality',
+  'Pre-start and adjudication meeting input',
+  'Operational team technical support',
+  'Product / procedure improvement trials',
+  'External liaison (HSE, LA, Fire Auth.)',
+  'Client-facing HSE presentation quality',
+];
+
+const RHYTHMS = {
+  daily: [
+    'Check for live incidents or near misses reported overnight',
+    'Review and clear action log from previous day',
+    'Site visit or planned operational touchpoint',
+    'Check in with at least one operational manager',
+    'Brief scan of HSE news / legislative updates (5 min)',
+  ],
+  weekly: [
+    'Structured review of open audit findings and corrective actions',
+    'One planned coaching conversation with a manager or team leader',
+    'Check regional HSE plan progress against weekly targets',
+    'Review RAMS received for sign-off',
+    'Check training completion data for the week',
+    'Prepare contribution for any safety meetings this week',
+    'Update action tracker',
+  ],
+  monthly: [
+    'Produce and issue audit / inspection safety report',
+    'Review training plan completion and identify competency gaps',
+    'Contractor documentation vetting sweep',
+    'Attend / chair safety meetings',
+    'Review near-miss and incident trends',
+    'Check corrective action close-out rates and escalate overdue items',
+    'Update regional HSE plan progress',
+    'Peer sync with other regional HSE managers',
+  ],
+  quarterly: [
+    'Structured KPI review against regional HSE plan targets',
+    'Formal peer sync with all regional HSE managers (uniform approach review)',
+    'CPD and professional development review (NEBOSH / IOSH progression)',
+    'Subcontractor performance review',
+    'Environmental performance check (ISO 14001 obligations)',
+    'Review iMS compliance and flag any gaps to Director',
+    'Client-facing reporting contribution',
+  ],
+  annual: [
+    'Create and submit regional HSE plan aligned to business plan',
+    'Produce annual audit / inspection report',
+    'ISO 45001 and ISO 14001 registration readiness review',
+    'Annual training needs analysis across the region',
+    'Full subcontractor register review',
+    'Personal development review and goals for next year',
+    'Review and update all HSE documentation and templates',
+  ],
+};
+
+const STAKEHOLDERS = [
+  { name: 'Director of H&S', objective: 'Keep informed, build trust. Flag risks early.' },
+  { name: 'Operational Managers', objective: 'Practical support, not policing. Gain buy-in.' },
+  { name: 'Subcontractors', objective: 'Engage early, vet proactively, coach on-site.' },
+  { name: 'Regional HSE Peers', objective: 'Share intelligence, align approach.' },
+  { name: 'HSE / Regulators', objective: 'Maintain open, transparent relationship.' },
+  { name: 'Clients (Housing Assocs / LAs)', objective: 'Demonstrate HSE value and positive culture.' },
+  { name: 'Fire Authorities', objective: 'Liaise re: regional work activities and incidents.' },
+  { name: 'Project Managers', objective: 'Joint site presence, investigation support.' },
+];
+
+const KPI_ITEMS = [
+  { id: 'audits',      label: 'Audits Completed (MTD)', type: 'number', color: '',       target: 'Target:' },
+  { id: 'closeout',    label: 'Action Close-Out Rate %', type: 'number', color: 'green', target: 'Target: 90%' },
+  { id: 'nearMiss',    label: 'Near Misses Reported',   type: 'number', color: 'orange', target: '' },
+  { id: 'incidents',   label: 'Incidents (MTD)',        type: 'number', color: '',       target: '' },
+  { id: 'training',    label: 'Training Completion %',  type: 'number', color: 'green',  target: 'Target: 100%' },
+  { id: 'siteVisits',  label: 'Site Visits (MTD)',      type: 'number', color: '',       target: '' },
+];
+
+const DEV_ITEMS = [
+  { id: 'nebosh',    title: 'NEBOSH Diploma / Equivalent' },
+  { id: 'cmiosh',   title: 'CMIOSH', achieved: true },
+  { id: 'cpd',      title: 'IOSH CPD Hours (Annual)' },
+  { id: 'housing',  title: 'Housing / HHSRS Knowledge' },
+  { id: 'electric', title: 'Electrical Safety Standards (BS 7671)' },
+  { id: 'awaabs',   title: "Awaab's Law / Social Housing Regs" },
+];
+
+// ── State ───────────────────────────────────────────────────────────────────
+
+function load(key, def) {
+  try { const v = localStorage.getItem(key); return v !== null ? JSON.parse(v) : def; }
+  catch { return def; }
+}
+function save(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+  showSaved();
+}
+
+let saveTimeout;
+function showSaved() {
+  const el = document.getElementById('saveIndicator');
+  el.classList.add('show');
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+function autoSave(key, el) {
+  el.addEventListener('input', () => save(key, el.value));
+}
+
+// ── Export / Import ──────────────────────────────────────────────────────────
+
+function exportData() {
+  const data = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    try { data[key] = JSON.parse(localStorage.getItem(key)); }
+    catch { data[key] = localStorage.getItem(key); }
+  }
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const date = new Date().toISOString().slice(0,10);
+  a.download = 'HSE-POS-data-' + date + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!confirm('This will overwrite all current data on this device with the imported file. Continue?')) return;
+      localStorage.clear();
+      Object.entries(data).forEach(([key, val]) => {
+        localStorage.setItem(key, typeof val === 'string' ? val : JSON.stringify(val));
+      });
+      location.reload();
+    } catch {
+      alert('Could not read the file. Make sure it is a valid export from this dashboard.');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ── Tab navigation ──────────────────────────────────────────────────────────
+
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  const tabs = ['overview','compliance','culture','operational','rhythms','actions','stakeholders','development','habits','journal','people'];
+  const idx = tabs.indexOf(name);
+  if (idx >= 0) document.querySelectorAll('nav button')[idx].classList.add('active');
+}
+
+// ── Rhythm tabs ─────────────────────────────────────────────────────────────
+
+function showRhythm(name) {
+  document.querySelectorAll('.rhythm-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.rhythm-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('rhythm-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ── RAG select helper ────────────────────────────────────────────────────────
+
+function makeRagSelect(id) {
+  const val = load('rag_' + id, 'grey');
+  const sel = document.createElement('select');
+  sel.className = 'rag-select ' + val;
+  sel.innerHTML = `<option value="grey">Not set</option>
+    <option value="green">Green ✓</option>
+    <option value="amber">Amber !</option>
+    <option value="red">Red ✕</option>`;
+  sel.value = val;
+  sel.addEventListener('change', () => {
+    sel.className = 'rag-select ' + sel.value;
+    save('rag_' + id, sel.value);
+  });
+  return sel;
+}
+
+function buildRagRows(containerId, items, prefix) {
+  const container = document.getElementById(containerId);
+  items.forEach((item, i) => {
+    const row = document.createElement('div');
+    row.className = 'rag-row';
+
+    const label = document.createElement('span');
+    label.className = 'rag-label';
+    label.textContent = item;
+
+    const notesWrap = document.createElement('span');
+    notesWrap.className = 'rag-notes';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Add notes...';
+    input.value = load(prefix + '_note_' + i, '');
+    input.addEventListener('input', () => save(prefix + '_note_' + i, input.value));
+    notesWrap.appendChild(input);
+
+    row.appendChild(label);
+    row.appendChild(notesWrap);
+    row.appendChild(makeRagSelect(prefix + '_' + i));
+    container.appendChild(row);
+  });
+}
+
+// ── Overview pillars ─────────────────────────────────────────────────────────
+
+function buildPillars() {
+  const container = document.getElementById('pillarsOverview');
+  PILLARS.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'pillar-card orange-top';
+    card.style.cursor = 'pointer';
+    card.title = 'Click to open ' + p.name;
+    card.onclick = () => showTab(p.tab);
+
+    const ragVal = load('pillar_rag_' + p.id, 'grey');
+    const ragLabels = { grey: 'Not set', green: 'On track', amber: 'Watch', red: 'At risk' };
+    const ragClasses = { grey: '#888', green: 'var(--green)', amber: 'var(--amber)', red: 'var(--red)' };
+    const ragBg = { grey: '#f0f0f0', green: 'var(--green-bg)', amber: 'var(--amber-bg)', red: 'var(--red-bg)' };
+
+    card.innerHTML = `
+      <div class="pillar-num">Pillar ${p.num}</div>
+      <div class="pillar-name">${p.name}</div>
+      <span class="pillar-status" style="background:${ragBg[ragVal]};color:${ragClasses[ragVal]}">${ragLabels[ragVal]}</span>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// Pillar summary RAG (set from overview directly)
+function buildPillarRag() {
+  // We'll rebuild pillars status from the overview tab
+  // This is handled on load via localStorage
+}
+
+// ── Priorities ───────────────────────────────────────────────────────────────
+
+function buildPriorities() {
+  const container = document.getElementById('priorities');
+  for (let i = 0; i < 5; i++) {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--grey-light);';
+    row.innerHTML = `<span style="background:var(--orange);color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${i+1}</span>`;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Priority ' + (i+1) + '...';
+    input.value = load('priority_' + i, '');
+    input.style.cssText = 'flex:1;border:1px solid var(--border);border-radius:4px;padding:6px 10px;font-size:13px;font-family:inherit;background:var(--grey-light);';
+    input.addEventListener('focus', () => { input.style.background = 'white'; input.style.borderColor = 'var(--navy-light)'; });
+    input.addEventListener('blur', () => { input.style.background = 'var(--grey-light)'; input.style.borderColor = 'var(--border)'; });
+    input.addEventListener('input', () => save('priority_' + i, input.value));
+    row.appendChild(input);
+    container.appendChild(row);
+  }
+}
+
+// ── Checklists ───────────────────────────────────────────────────────────────
+
+function buildRhythm(name, items) {
+  const container = document.getElementById('rhythm-' + name);
+  const group = document.createElement('div');
+  group.className = 'checklist-group';
+
+  items.forEach((item, i) => {
+    const row = document.createElement('div');
+    row.className = 'checklist-item';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.id = 'cb_' + name + '_' + i;
+    cb.checked = load('cb_' + name + '_' + i, false);
+    cb.addEventListener('change', () => save('cb_' + name + '_' + i, cb.checked));
+
+    const label = document.createElement('label');
+    label.htmlFor = cb.id;
+    label.textContent = item;
+
+    row.appendChild(cb);
+    row.appendChild(label);
+    group.appendChild(row);
+  });
+
+  const reset = document.createElement('button');
+  reset.className = 'reset-btn';
+  reset.textContent = 'Reset checklist';
+  reset.onclick = () => {
+    group.querySelectorAll('input[type=checkbox]').forEach((cb, i) => {
+      cb.checked = false;
+      save('cb_' + name + '_' + i, false);
+    });
+  };
+  group.appendChild(reset);
+  container.appendChild(group);
+}
+
+// ── Action Tracker ───────────────────────────────────────────────────────────
+
+let actionRows = load('actionRows', []);
+
+function renderActions() {
+  const tbody = document.getElementById('actionBody');
+  tbody.innerHTML = '';
+  actionRows.forEach((row, idx) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:var(--grey-mid);font-size:12px;">${idx+1}</td>
+      <td><input type="date" value="${row.date||''}" onchange="updateAction(${idx},'date',this.value)"></td>
+      <td><textarea rows="2" onchange="updateAction(${idx},'action',this.value)">${row.action||''}</textarea></td>
+      <td><input type="text" value="${row.source||''}" placeholder="e.g. Site audit" onchange="updateAction(${idx},'source',this.value)"></td>
+      <td><input type="text" value="${row.owner||''}" placeholder="Name/team" onchange="updateAction(${idx},'owner',this.value)"></td>
+      <td><input type="date" value="${row.due||''}" onchange="updateAction(${idx},'due',this.value)"></td>
+      <td>
+        <select onchange="updateAction(${idx},'status',this.value)" style="width:100%;border:1px solid var(--border);border-radius:4px;padding:4px 6px;font-size:12px;background:var(--grey-light);">
+          <option value="open" ${row.status==='open'?'selected':''}>Open</option>
+          <option value="closed" ${row.status==='closed'?'selected':''}>Closed</option>
+          <option value="overdue" ${row.status==='overdue'?'selected':''}>Overdue</option>
+        </select>
+      </td>
+      <td><button class="del-btn" onclick="deleteAction(${idx})">×</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function addActionRow() {
+  actionRows.push({ date: new Date().toISOString().slice(0,10), action:'', source:'', owner:'', due:'', status:'open' });
+  save('actionRows', actionRows);
+  renderActions();
+}
+
+function updateAction(idx, field, val) {
+  actionRows[idx][field] = val;
+  save('actionRows', actionRows);
+}
+
+function deleteAction(idx) {
+  actionRows.splice(idx, 1);
+  save('actionRows', actionRows);
+  renderActions();
+}
+
+// ── Stakeholders ─────────────────────────────────────────────────────────────
+
+function buildStakeholders() {
+  const container = document.getElementById('stakeholderRows');
+  STAKEHOLDERS.forEach((s, i) => {
+    const row = document.createElement('div');
+    row.className = 'stakeholder-row';
+
+    const nameDiv = document.createElement('div');
+    nameDiv.innerHTML = `<div class="stakeholder-name">${s.name}</div><div style="font-size:11px;color:var(--grey-mid);margin-top:4px;line-height:1.3;">${s.objective}</div>`;
+
+    const notes = document.createElement('textarea');
+    notes.placeholder = 'Last contact, relationship notes...';
+    notes.value = load('sth_notes_' + i, '');
+    notes.addEventListener('input', () => save('sth_notes_' + i, notes.value));
+
+    const actions = document.createElement('textarea');
+    actions.placeholder = 'Next actions, follow-ups...';
+    actions.value = load('sth_actions_' + i, '');
+    actions.addEventListener('input', () => save('sth_actions_' + i, actions.value));
+
+    row.appendChild(nameDiv);
+    row.appendChild(notes);
+    row.appendChild(actions);
+    row.appendChild(makeRagSelect('sth_' + i));
+    container.appendChild(row);
+  });
+}
+
+// ── Development ──────────────────────────────────────────────────────────────
+
+function buildDevelopment() {
+  const container = document.getElementById('devRows');
+  DEV_ITEMS.forEach((item, i) => {
+    const row = document.createElement('div');
+    row.className = 'dev-item';
+
+    const title = document.createElement('div');
+    title.innerHTML = `<div class="dev-title">${item.title}</div>${item.achieved ? '<span style="background:var(--green-bg);color:var(--green);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;margin-top:4px;display:inline-block;">Achieved ✓</span>' : ''}`;
+
+    const notes = document.createElement('textarea');
+    notes.placeholder = item.achieved ? 'Membership notes, renewal date, ongoing obligations...' : 'Progress notes, portfolio evidence, next steps...';
+    notes.rows = 2;
+    notes.value = load('dev_notes_' + i, '');
+    notes.addEventListener('input', () => save('dev_notes_' + i, notes.value));
+
+    const dateInput = document.createElement('input');
+    dateInput.type = 'date';
+    dateInput.title = item.achieved ? 'Membership renewal / review date' : 'Target completion date';
+    dateInput.value = load('dev_date_' + i, '');
+    dateInput.addEventListener('change', () => save('dev_date_' + i, dateInput.value));
+
+    const pctWrap = document.createElement('div');
+    if (item.achieved) {
+      pctWrap.innerHTML = `<div style="text-align:center;padding:8px 0;"><span style="font-size:28px;">🏆</span><div style="font-size:11px;color:var(--grey-mid);margin-top:4px;">Qualified</div></div>`;
+    } else {
+      const pctVal = load('dev_pct_' + i, 0);
+      pctWrap.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <input type="number" min="0" max="100" value="${pctVal}" style="width:60px;border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-size:14px;font-weight:700;color:var(--navy);" oninput="updateDevPct(${i},this.value)">
+          <span style="font-size:12px;color:var(--grey-mid)">%</span>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="devBar_${i}" style="width:${pctVal}%"></div></div>
+      `;
+    }
+
+    row.appendChild(title);
+    row.appendChild(notes);
+    row.appendChild(dateInput);
+    row.appendChild(pctWrap);
+    container.appendChild(row);
+  });
+}
+
+function updateDevPct(i, val) {
+  const pct = Math.min(100, Math.max(0, parseInt(val)||0));
+  document.getElementById('devBar_' + i).style.width = pct + '%';
+  save('dev_pct_' + i, pct);
+}
+
+// ── KPI Grid ─────────────────────────────────────────────────────────────────
+
+function buildKPIs() {
+  const container = document.getElementById('kpiGrid');
+  KPI_ITEMS.forEach(k => {
+    const card = document.createElement('div');
+    card.className = 'kpi-card ' + k.color;
+    const val = load('kpi_' + k.id, '');
+    const tgt = load('kpi_tgt_' + k.id, k.target || '');
+    card.innerHTML = `
+      <label>${k.label}</label>
+      <input type="${k.type}" value="${val}" placeholder="—" oninput="saveKpi('${k.id}', this.value)">
+      ${k.target ? `<div class="kpi-target">${k.target} <input type="text" value="${tgt}" placeholder="enter target" oninput="saveKpiTgt('${k.id}',this.value)"></div>` : ''}
+    `;
+    container.appendChild(card);
+  });
+}
+
+function saveKpi(id, val) { save('kpi_' + id, val); }
+function saveKpiTgt(id, val) { save('kpi_tgt_' + id, val); }
+
+// ── CPD Tracker ──────────────────────────────────────────────────────────────
+
+let cpdRows = load('cpdRows', []);
+
+function renderCpd() {
+  const tbody = document.getElementById('cpdBody');
+  tbody.innerHTML = '';
+  let totalHours = 0;
+  cpdRows.forEach((row, idx) => {
+    totalHours += parseFloat(row.hours) || 0;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:var(--grey-mid);font-size:12px;">${idx+1}</td>
+      <td><input type="date" value="${row.date||''}" onchange="updateCpd(${idx},'date',this.value)"></td>
+      <td><input type="text" value="${row.activity||''}" placeholder="Activity / event name..." onchange="updateCpd(${idx},'activity',this.value)"></td>
+      <td>
+        <select onchange="updateCpd(${idx},'type',this.value)" style="width:100%;border:1px solid var(--border);border-radius:4px;padding:4px 6px;font-size:12px;background:var(--grey-light);">
+          <option value="" ${!row.type?'selected':''}>Select type</option>
+          <option value="Formal" ${row.type==='Formal'?'selected':''}>Formal</option>
+          <option value="Informal" ${row.type==='Informal'?'selected':''}>Informal</option>
+          <option value="Reflective" ${row.type==='Reflective'?'selected':''}>Reflective</option>
+          <option value="On-the-job" ${row.type==='On-the-job'?'selected':''}>On-the-job</option>
+          <option value="Mentoring" ${row.type==='Mentoring'?'selected':''}>Mentoring</option>
+        </select>
+      </td>
+      <td><input type="number" step="0.5" min="0" value="${row.hours||''}" placeholder="0" onchange="updateCpd(${idx},'hours',this.value)" style="text-align:center;"></td>
+      <td><input type="text" value="${row.learning||''}" placeholder="Key learning points or reflection..." onchange="updateCpd(${idx},'learning',this.value)"></td>
+      <td><button class="del-btn" onclick="deleteCpd(${idx})">×</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  const hoursEl = document.getElementById('cpdHoursTotal');
+  if (hoursEl) hoursEl.textContent = `Total logged: ${totalHours.toFixed(1)} hrs`;
+}
+
+function addCpdRow() {
+  cpdRows.push({ date: new Date().toISOString().slice(0,10), activity:'', type:'', hours:'', learning:'' });
+  save('cpdRows', cpdRows);
+  renderCpd();
+}
+
+function updateCpd(idx, field, val) {
+  cpdRows[idx][field] = val;
+  save('cpdRows', cpdRows);
+  if (field === 'hours') renderCpd();
+}
+
+function deleteCpd(idx) {
+  cpdRows.splice(idx, 1);
+  save('cpdRows', cpdRows);
+  renderCpd();
+}
+
+// ── Personal Habits ──────────────────────────────────────────────────────────
+
+const DEFAULT_HABITS = [
+  'Conduct at least one site visit or operational touchpoint',
+  'Have one meaningful conversation with a team member about safety',
+  'Clear action log and follow up on at least one open item',
+  'Review any incidents or near misses reported',
+  'Read one piece of industry or legislative news (5 min)',
+  'Record any coaching or positive culture observations',
+];
+
+let habitsList = load('habitsList', DEFAULT_HABITS);
+
+function renderHabits() {
+  const container = document.getElementById('habitsContainer');
+  container.innerHTML = '';
+  habitsList.forEach((habit, i) => {
+    const checked = load('habit_check_' + i, false);
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;margin-bottom:6px;transition:background 0.2s;background:' + (checked ? 'var(--green-bg)' : 'var(--grey-light)') + ';';
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = checked;
+    cb.style.cssText = 'width:18px;height:18px;accent-color:var(--green);flex-shrink:0;cursor:pointer;';
+    cb.addEventListener('change', () => {
+      save('habit_check_' + i, cb.checked);
+      row.style.background = cb.checked ? 'var(--green-bg)' : 'var(--grey-light)';
+      label.style.textDecoration = cb.checked ? 'line-through' : 'none';
+      label.style.color = cb.checked ? 'var(--grey-mid)' : 'var(--grey-dark)';
+    });
+
+    const label = document.createElement('span');
+    label.textContent = habit;
+    label.style.cssText = 'flex:1;font-size:14px;cursor:pointer;' + (checked ? 'text-decoration:line-through;color:var(--grey-mid);' : '');
+    label.onclick = () => { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); };
+
+    const del = document.createElement('button');
+    del.textContent = '×';
+    del.className = 'del-btn';
+    del.title = 'Remove habit';
+    del.onclick = () => {
+      habitsList.splice(i, 1);
+      save('habitsList', habitsList);
+      renderHabits();
+    };
+
+    row.appendChild(cb);
+    row.appendChild(label);
+    row.appendChild(del);
+    container.appendChild(row);
+  });
+}
+
+function addHabit() {
+  const input = document.getElementById('newHabitInput');
+  const val = input.value.trim();
+  if (!val) return;
+  habitsList.push(val);
+  save('habitsList', habitsList);
+  input.value = '';
+  renderHabits();
+}
+
+function resetHabits() {
+  habitsList.forEach((_, i) => save('habit_check_' + i, false));
+  renderHabits();
+}
+
+// ── Journal ──────────────────────────────────────────────────────────────────
+
+const J_FIELDS = ['well','challenge','different','safety','relationships','free'];
+let currentJournalDate = null;
+
+function getJournalDates() {
+  return load('journalDates', []);
+}
+
+function journalKey(date, field) {
+  return 'journal_' + date + '_' + field;
+}
+
+function loadJournalEntry(date) {
+  currentJournalDate = date;
+  J_FIELDS.forEach(f => {
+    const el = document.getElementById('j_' + f);
+    el.value = load(journalKey(date, f), '');
+    el.oninput = () => save(journalKey(date, f), el.value);
+  });
+  document.getElementById('journalEntryArea').style.display = 'block';
+  document.getElementById('journalEmptyState').style.display = 'none';
+  renderJournalIndex();
+}
+
+function addJournalEntry() {
+  const picker = document.getElementById('journalDatePicker');
+  const date = picker.value || new Date().toISOString().slice(0,10);
+  picker.value = date;
+  const dates = getJournalDates();
+  if (!dates.includes(date)) {
+    dates.unshift(date);
+    dates.sort((a,b) => b.localeCompare(a));
+    save('journalDates', dates);
+  }
+  loadJournalEntry(date);
+  updateJournalCount();
+}
+
+function deleteJournalEntry() {
+  if (!currentJournalDate) return;
+  if (!confirm('Delete the entry for ' + formatDate(currentJournalDate) + '?')) return;
+  let dates = getJournalDates().filter(d => d !== currentJournalDate);
+  save('journalDates', dates);
+  J_FIELDS.forEach(f => localStorage.removeItem(journalKey(currentJournalDate, f)));
+  currentJournalDate = null;
+  document.getElementById('journalEntryArea').style.display = 'none';
+  document.getElementById('journalEmptyState').style.display = 'block';
+  renderJournalIndex();
+  updateJournalCount();
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'long', year:'numeric' });
+}
+
+function renderJournalIndex() {
+  const container = document.getElementById('journalIndex');
+  const dates = getJournalDates();
+  if (!dates.length) {
+    container.innerHTML = '<p style="color:var(--grey-mid);font-style:italic;">No journal entries yet.</p>';
+    return;
+  }
+  container.innerHTML = '';
+  dates.forEach(date => {
+    const row = document.createElement('div');
+    const isActive = date === currentJournalDate;
+    row.style.cssText = `display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:6px;margin-bottom:6px;cursor:pointer;background:${isActive ? 'var(--navy)' : 'var(--grey-light)'};color:${isActive ? 'white' : 'var(--grey-dark)'};transition:background 0.2s;`;
+    const preview = load(journalKey(date, 'well'), '').slice(0, 80);
+    row.innerHTML = `
+      <div>
+        <div style="font-weight:600;font-size:13px;">${formatDate(date)}</div>
+        ${preview ? `<div style="font-size:11px;opacity:0.65;margin-top:2px;">${preview}${preview.length===80?'…':''}</div>` : ''}
+      </div>
+      <span style="font-size:18px;opacity:0.5;">›</span>
+    `;
+    row.onclick = () => {
+      document.getElementById('journalDatePicker').value = date;
+      loadJournalEntry(date);
+    };
+    container.appendChild(row);
+  });
+}
+
+function updateJournalCount() {
+  const count = getJournalDates().length;
+  const el = document.getElementById('journalEntryCount');
+  if (el) el.textContent = count + (count === 1 ? ' entry' : ' entries');
+}
+
+// ── My People ────────────────────────────────────────────────────────────────
+
+let currentPerson = 0;
+let objRows = [load('objRows_0', []), load('objRows_1', [])];
+let oneoneRows = [load('oneoneRows_0', []), load('oneoneRows_1', [])];
+
+const PERSON_TEXT_FIELDS = ['name','title','quals','strengths','devAreas','coaching','appraisal'];
+const PERSON_DATE_FIELDS = ['start','lastAppraisal','nextAppraisal'];
+
+function selectPerson(idx) {
+  currentPerson = idx;
+  document.getElementById('personPanel0').style.display = idx === 0 ? 'block' : 'none';
+  document.getElementById('personPanel1').style.display = idx === 1 ? 'block' : 'none';
+  document.getElementById('personBtn0').style.background = idx === 0 ? 'var(--navy)' : '#aaa';
+  document.getElementById('personBtn1').style.background = idx === 1 ? 'var(--navy)' : '#aaa';
+}
+
+function savePerson(idx, field, val) {
+  save('person_' + idx + '_' + field, val);
+}
+
+function loadPerson(idx) {
+  PERSON_TEXT_FIELDS.forEach(f => {
+    const el = document.getElementById('p' + idx + '_' + f);
+    if (el) el.value = load('person_' + idx + '_' + f, '');
+  });
+  PERSON_DATE_FIELDS.forEach(f => {
+    const el = document.getElementById('p' + idx + '_' + f);
+    if (el) el.value = load('person_' + idx + '_' + f, '');
+  });
+}
+
+function updatePersonHeadings() {
+  [0,1].forEach(i => {
+    const name = load('person_' + i + '_name', '');
+    const heading = document.getElementById('p' + i + '_heading');
+    if (heading) heading.textContent = name || 'Direct Report ' + (i+1);
+    const btn = document.getElementById('personBtn' + i);
+    if (btn) btn.textContent = name || 'Person ' + (i+1);
+  });
+}
+
+// Objectives
+function renderObjRows(idx) {
+  const tbody = document.getElementById('obj' + idx + 'Body');
+  tbody.innerHTML = '';
+  objRows[idx].forEach((row, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:var(--grey-mid);font-size:12px;">${i+1}</td>
+      <td><textarea rows="2" onchange="updateObjRow(${idx},${i},'obj',this.value)">${row.obj||''}</textarea></td>
+      <td><input type="date" value="${row.due||''}" onchange="updateObjRow(${idx},${i},'due',this.value)"></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="number" min="0" max="100" value="${row.pct||0}" style="width:52px;text-align:center;" onchange="updateObjRow(${idx},${i},'pct',this.value)">
+          <span style="font-size:11px;color:var(--grey-mid)">%</span>
+        </div>
+        <div class="progress-bar-wrap" style="margin-top:4px;"><div class="progress-bar-fill" style="width:${row.pct||0}%"></div></div>
+      </td>
+      <td>
+        <select onchange="updateObjRow(${idx},${i},'status',this.value)" style="width:100%;border:1px solid var(--border);border-radius:4px;padding:4px 6px;font-size:12px;background:var(--grey-light);">
+          <option value="on-track" ${row.status==='on-track'?'selected':''}>On track</option>
+          <option value="at-risk"  ${row.status==='at-risk'?'selected':''}>At risk</option>
+          <option value="complete" ${row.status==='complete'?'selected':''}>Complete</option>
+          <option value="paused"   ${row.status==='paused'?'selected':''}>Paused</option>
+        </select>
+      </td>
+      <td><button class="del-btn" onclick="deleteObjRow(${idx},${i})">×</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function addObjRow(idx) {
+  objRows[idx].push({ obj:'', due:'', pct:0, status:'on-track' });
+  save('objRows_' + idx, objRows[idx]);
+  renderObjRows(idx);
+}
+
+function updateObjRow(idx, i, field, val) {
+  objRows[idx][i][field] = val;
+  save('objRows_' + idx, objRows[idx]);
+  if (field === 'pct') renderObjRows(idx);
+}
+
+function deleteObjRow(idx, i) {
+  objRows[idx].splice(i, 1);
+  save('objRows_' + idx, objRows[idx]);
+  renderObjRows(idx);
+}
+
+// 1:1 meetings
+function renderOneoneRows(idx) {
+  const tbody = document.getElementById('oneone' + idx + 'Body');
+  tbody.innerHTML = '';
+  oneoneRows[idx].forEach((row, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:var(--grey-mid);font-size:12px;">${i+1}</td>
+      <td><input type="date" value="${row.date||''}" onchange="updateOneone(${idx},${i},'date',this.value)"></td>
+      <td><textarea rows="2" onchange="updateOneone(${idx},${i},'discussion',this.value)">${row.discussion||''}</textarea></td>
+      <td><textarea rows="2" onchange="updateOneone(${idx},${i},'actions',this.value)">${row.actions||''}</textarea></td>
+      <td><input type="date" value="${row.next||''}" onchange="updateOneone(${idx},${i},'next',this.value)"></td>
+      <td><button class="del-btn" onclick="deleteOneone(${idx},${i})">×</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function addOneoneMeeting(idx) {
+  oneoneRows[idx].unshift({ date: new Date().toISOString().slice(0,10), discussion:'', actions:'', next:'' });
+  save('oneoneRows_' + idx, oneoneRows[idx]);
+  renderOneoneRows(idx);
+}
+
+function updateOneone(idx, i, field, val) {
+  oneoneRows[idx][i][field] = val;
+  save('oneoneRows_' + idx, oneoneRows[idx]);
+}
+
+function deleteOneone(idx, i) {
+  oneoneRows[idx].splice(i, 1);
+  save('oneoneRows_' + idx, oneoneRows[idx]);
+  renderOneoneRows(idx);
+}
+
+function initPeople() {
+  loadPerson(0);
+  loadPerson(1);
+  updatePersonHeadings();
+  renderObjRows(0);
+  renderObjRows(1);
+  renderOneoneRows(0);
+  renderOneoneRows(1);
+}
+
+function initJournal() {
+  const picker = document.getElementById('journalDatePicker');
+  picker.value = new Date().toISOString().slice(0,10);
+  picker.addEventListener('change', () => {
+    const dates = getJournalDates();
+    if (dates.includes(picker.value)) loadJournalEntry(picker.value);
+    else {
+      document.getElementById('journalEntryArea').style.display = 'none';
+      document.getElementById('journalEmptyState').style.display = 'block';
+      currentJournalDate = null;
+    }
+  });
+  renderJournalIndex();
+  updateJournalCount();
+  // Auto-load today if entry exists
+  const today = new Date().toISOString().slice(0,10);
+  if (getJournalDates().includes(today)) loadJournalEntry(today);
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Date
+  document.getElementById('headerDate').textContent = new Date().toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  // Overview
+  buildPillars();
+  buildPriorities();
+
+  const trueNorth = document.getElementById('trueNorth');
+  trueNorth.value = load('trueNorth', trueNorth.value);
+  autoSave('trueNorth', trueNorth);
+
+  const weeklyNotes = document.getElementById('weeklyNotes');
+  weeklyNotes.value = load('weeklyNotes', '');
+  autoSave('weeklyNotes', weeklyNotes);
+
+  // Compliance
+  buildRagRows('complianceRows', COMPLIANCE_ITEMS, 'comp');
+  const auditProg = document.getElementById('auditProgramme');
+  auditProg.value = load('auditProgramme', '');
+  autoSave('auditProgramme', auditProg);
+  const imsStatus = document.getElementById('imsStatus');
+  imsStatus.value = load('imsStatus', '');
+  autoSave('imsStatus', imsStatus);
+
+  // Culture
+  buildRagRows('cultureRows', CULTURE_ITEMS, 'cult');
+  const coachLog = document.getElementById('coachingLog');
+  coachLog.value = load('coachingLog', '');
+  autoSave('coachingLog', coachLog);
+  const behObs = document.getElementById('behaviourObs');
+  behObs.value = load('behaviourObs', '');
+  autoSave('behaviourObs', behObs);
+
+  // Operational
+  buildRagRows('operationalRows', OPERATIONAL_ITEMS, 'ops');
+  buildKPIs();
+  const incLog = document.getElementById('incidentLog');
+  incLog.value = load('incidentLog', '');
+  autoSave('incidentLog', incLog);
+
+  // Rhythms
+  Object.entries(RHYTHMS).forEach(([name, items]) => buildRhythm(name, items));
+
+  // Actions
+  renderActions();
+
+  // Stakeholders
+  buildStakeholders();
+
+  // Development
+  buildDevelopment();
+
+  // CPD
+  renderCpd();
+
+  // Habits
+  renderHabits();
+  const habitsReflection = document.getElementById('habitsReflection');
+  habitsReflection.value = load('habitsReflection', '');
+  autoSave('habitsReflection', habitsReflection);
+
+  // Journal
+  initJournal();
+
+  // People
+  initPeople();
+});
+</script>
+</body>
+</html>
